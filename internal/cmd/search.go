@@ -2,12 +2,10 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/spf13/cobra"
 
-	"github.com/jo3qma/sansai/internal/market"
-	"github.com/jo3qma/sansai/internal/model"
+	"github.com/jo3qma/sansai"
 )
 
 var (
@@ -23,33 +21,15 @@ var searchCmd = &cobra.Command{
 	Short: "キーワードで商品を検索",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		markets, err := market.ParseMarkets(searchMarkets)
-		if err != nil {
-			return err
-		}
-
-		opts := model.SearchOptions{
+		resp, err := sansai.Search(context.Background(), args[0], searchMarkets, sansai.SearchOptions{
 			Limit:    searchLimit,
 			Page:     searchPage,
 			MinPrice: searchMin,
 			MaxPrice: searchMax,
+		})
+		if err != nil {
+			return err
 		}
-
-		resp := model.SearchResponse{Query: args[0]}
-		ctx := context.Background()
-
-		for _, m := range markets {
-			client, err := market.New(m)
-			if err != nil {
-				return err
-			}
-			result, err := client.Search(ctx, args[0], opts)
-			if err != nil {
-				return fmt.Errorf("%s: %w", m, err)
-			}
-			resp.Results = append(resp.Results, *result)
-		}
-
 		return printJSON(resp)
 	},
 }
