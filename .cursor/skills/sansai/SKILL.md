@@ -1,7 +1,7 @@
 ---
 name: sansai
 description: >-
-  LLM Agent 向けの日本 C2C マーケット（Yahoo!オークション・Yahoo!フリマ・メルカリ）商品検索 CLI と Go ライブラリ。
+  LLM Agent 向けの日本 C2C マーケット（Yahoo!オークション・Yahoo!フリマ・メルカリ）商品検索 CLI。
   Use when searching or fetching items from mercari, Yahoo Auction, Yahoo Flea, PayPayフリマ, ヤフオク,
   developing sansai itself, or wiring Agent tool definitions for Japanese marketplace lookup.
 ---
@@ -101,28 +101,7 @@ sansai schema   # Function Calling 用 JSON
 
 Agent が直接シェルを叩く場合は、検索→候補提示→`get` で詳細取得、の流れが自然。
 
-## Go ライブラリ
-
-公開 API はルート `github.com/jo3qma/sansai` パッケージのみ。`internal/` は非公開。
-
-```go
-import (
-    "context"
-    "github.com/jo3qma/sansai"
-)
-
-// 横断検索
-resp, err := sansai.Search(ctx, "ポケモンカード", "all", sansai.SearchOptions{Limit: 5})
-
-// 単品取得
-item, err := sansai.Get(ctx, sansai.MarketMercari, "m56797713000")
-
-// 単一マーケットクライアント
-client, err := sansai.NewClient(sansai.MarketYahooAuction)
-result, err := client.Search(ctx, "nintendo switch", sansai.SearchOptions{Limit: 10})
-```
-
-## リポジトリ構造
+## リポジトリ構造（sansai 本体を開発するとき）
 
 ```
 cmd/sansai/          CLI エントリ
@@ -130,7 +109,6 @@ internal/cmd/        cobra サブコマンド
 internal/market/     マーケット別クライアント（mercari, yahooauction, yahooflea）
 internal/model/      共有型（Item, SearchResult 等）
 internal/httpclient/ HTTP 共通
-sansai.go, search.go, get.go  公開 API
 ```
 
 新マーケット追加: `internal/market/<name>/client.go` を実装し `registry.go` と `model.ParseMarket` に登録。
@@ -161,5 +139,5 @@ SANSAI_INTEGRATION=1 go test ./internal/market/mercari/ -run Integration
 ## 実装時の指針
 
 - 最小差分。新マーケットは既存クライアント（`mercari`, `yahooauction`）のパターンに合わせる。
-- 公開 API を変えるときは README と `schema` コマンドを同期する。
+- CLI や出力形式を変えるときは README と `schema` コマンドを同期する。
 - テストは HTTP モックで単体、実 API は Integration に分離。
