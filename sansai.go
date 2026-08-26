@@ -1,6 +1,8 @@
 package sansai
 
 import (
+	"context"
+
 	"github.com/jo3qma/sansai/internal/market"
 	"github.com/jo3qma/sansai/internal/model"
 )
@@ -20,11 +22,30 @@ type SearchResult = model.SearchResult
 type SearchResponse = model.SearchResponse
 
 // Client queries a single marketplace.
-type Client = market.Client
+type Client interface {
+	Search(ctx context.Context, query string, opts SearchOptions) (*SearchResult, error)
+	Get(ctx context.Context, id string) (*Item, error)
+}
+
+type client struct {
+	inner market.Client
+}
+
+func (c *client) Search(ctx context.Context, query string, opts SearchOptions) (*SearchResult, error) {
+	return c.inner.Search(ctx, query, opts)
+}
+
+func (c *client) Get(ctx context.Context, id string) (*Item, error) {
+	return c.inner.Get(ctx, id)
+}
 
 // NewClient returns a client for the given market.
 func NewClient(m Market) (Client, error) {
-	return market.New(m)
+	inner, err := market.New(m)
+	if err != nil {
+		return nil, err
+	}
+	return &client{inner: inner}, nil
 }
 
 // AllMarkets returns every supported market.

@@ -21,7 +21,7 @@ func Search(ctx context.Context, query string, marketSpec string, opts SearchOpt
 		}
 		result, err := client.Search(ctx, query, opts)
 		if err != nil {
-			return nil, fmt.Errorf("%s: %w", m, err)
+			return nil, fmt.Errorf("market %s: %w", m, err)
 		}
 		resp.Results = append(resp.Results, *result)
 	}
