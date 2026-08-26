@@ -93,6 +93,7 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 			SellerID         string   `json:"sellerId"`
 			Auction          *struct {
 				BidDeadline string `json:"bidDeadline"`
+				TotalBid    int    `json:"totalBid"`
 			} `json:"auction"`
 		} `json:"items"`
 		Meta struct {
@@ -126,7 +127,9 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 		}
 		if it.Auction != nil {
 			item.SaleType = model.SaleTypeAuction
-			item.EndTime = it.Auction.BidDeadline
+			if it.Auction.TotalBid > 0 {
+				item.EndTime = it.Auction.BidDeadline
+			}
 		}
 		items = append(items, item)
 	}
@@ -234,7 +237,7 @@ func unixRFC3339(sec int64) string {
 	if sec <= 0 {
 		return ""
 	}
-	return time.Unix(sec, 0).Format(time.RFC3339)
+	return time.Unix(sec, 0).UTC().Format(time.RFC3339)
 }
 
 func (c *Client) postJSON(url string, payload any) ([]byte, error) {
