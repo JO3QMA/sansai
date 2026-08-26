@@ -8,6 +8,13 @@ import (
 	"github.com/jo3qma/sansai/internal/model"
 )
 
+func TestJoinDescription(t *testing.T) {
+	got := joinDescription([]string{"", "説明1", "", "説明2"})
+	if got != "説明1\n説明2" {
+		t.Fatalf("got %q", got)
+	}
+}
+
 func TestItemFromDetailFixture(t *testing.T) {
 	raw, err := os.ReadFile("testdata/item_detail.json")
 	if err != nil {

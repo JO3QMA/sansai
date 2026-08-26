@@ -105,24 +105,22 @@ type auctionItemDetail struct {
 	Img           []struct {
 		Image string `json:"image"`
 	} `json:"img"`
+	Images []struct {
+		Image string `json:"image"`
+	} `json:"images"`
 	Seller struct {
 		AucUserID string `json:"aucUserId"`
 	} `json:"seller"`
 }
 
 func itemFromDetail(raw auctionItemDetail) *model.Item {
-	imageURLs := make([]string, 0, len(raw.Img))
-	for _, img := range raw.Img {
-		if img.Image != "" {
-			imageURLs = append(imageURLs, img.Image)
-		}
-	}
+	imageURLs := imageURLsFromAuction(raw.Img, raw.Images)
 	imageURL := ""
 	if len(imageURLs) > 0 {
 		imageURL = imageURLs[0]
 	}
 
-	return &model.Item{
+	item := &model.Item{
 		Market:      model.MarketYahooAuction,
 		ID:          raw.AuctionID,
 		Title:       raw.Title,
@@ -133,7 +131,6 @@ func itemFromDetail(raw auctionItemDetail) *model.Item {
 		ImageURLs:   imageURLs,
 		Description: joinDescription(raw.Description),
 		SaleType:    model.SaleTypeAuction,
-		EndTime:     raw.EndTime,
 		Status:      raw.ItemStatus,
 		Condition:   raw.ConditionName,
 		Seller:      raw.Seller.AucUserID,
@@ -141,13 +138,36 @@ func itemFromDetail(raw auctionItemDetail) *model.Item {
 			"buy_now_price": raw.BuyNowPrice,
 		},
 	}
+	if raw.EndTime != "" {
+		item.EndTime = raw.EndTime
+	}
+	return item
+}
+
+func imageURLsFromAuction(img, images []struct {
+	Image string `json:"image"`
+}) []string {
+	source := img
+	if len(source) == 0 {
+		source = images
+	}
+	urls := make([]string, 0, len(source))
+	for _, entry := range source {
+		if entry.Image != "" {
+			urls = append(urls, entry.Image)
+		}
+	}
+	return urls
 }
 
 func joinDescription(parts []string) string {
-	if len(parts) == 0 {
-		return ""
+	nonEmpty := make([]string, 0, len(parts))
+	for _, part := range parts {
+		if part != "" {
+			nonEmpty = append(nonEmpty, part)
+		}
 	}
-	return strings.TrimSpace(strings.Join(parts, "\n"))
+	return strings.Join(nonEmpty, "\n")
 }
 
 func parseSearchHTML(html string, minPrice, maxPrice int) []model.Item {
