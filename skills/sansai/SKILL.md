@@ -3,12 +3,31 @@ name: sansai
 description: >-
   LLM Agent 向けの日本 C2C マーケット（Yahoo!オークション・Yahoo!フリマ・メルカリ）商品検索 CLI。
   Use when searching or fetching items from mercari, Yahoo Auction, Yahoo Flea, PayPayフリマ, ヤフオク,
-  developing sansai itself, or wiring Agent tool definitions for Japanese marketplace lookup.
+  or wiring Agent tool definitions for Japanese marketplace lookup.
 ---
 
 # sansai
 
 **sansai**（三サイト）は JSON 出力の CLI。Agent のツール呼び出しを主用途とする。
+
+## インストール（Cursor Agent）
+
+配布元はリポジトリの `skills/sansai/`。インストール先は **ユーザーの** `~/.cursor/skills/sansai/`（全プロジェクトで有効）。
+
+```bash
+mkdir -p ~/.cursor/skills/sansai
+cp skills/sansai/SKILL.md ~/.cursor/skills/sansai/
+```
+
+リポジトリを clone していない場合:
+
+```bash
+mkdir -p ~/.cursor/skills/sansai
+curl -fsSL https://raw.githubusercontent.com/JO3QMA/sansai/master/skills/sansai/SKILL.md \
+  -o ~/.cursor/skills/sansai/SKILL.md
+```
+
+**注意:** リポジトリ内の `.cursor/skills/` は Cursor のプロジェクトスキル用。sansai CLI 利用用スキルは上記の個人スキルへ置く。
 
 ## 対応マーケット
 
@@ -22,8 +41,7 @@ description: >-
 
 ```bash
 # ビルド・インストール
-go build -o bin/sansai ./cmd/sansai/
-go install ./cmd/sansai
+go install github.com/jo3qma/sansai/cmd/sansai@latest
 
 # 横断検索（全マーケット）
 sansai search "ポケモンカード" -n 5
@@ -99,35 +117,7 @@ sansai schema   # Function Calling 用 JSON
 }
 ```
 
-Agent が直接シェルを叩く場合は、検索→候補提示→`get` で詳細取得、の流れが自然。
-
-## リポジトリ構造（sansai 本体を開発するとき）
-
-```
-cmd/sansai/          CLI エントリ
-internal/cmd/        cobra サブコマンド
-internal/market/     マーケット別クライアント（mercari, yahooauction, yahooflea）
-internal/model/      共有型（Item, SearchResult 等）
-internal/httpclient/ HTTP 共通
-```
-
-新マーケット追加: `internal/market/<name>/client.go` を実装し `registry.go` と `model.ParseMarket` に登録。
-
-## 開発・検証
-
-```bash
-go test ./...
-go vet ./...
-go build -o /dev/null ./cmd/sansai
-
-# 外部 API 実リクエスト（CI には含めない）
-SANSAI_INTEGRATION=1 go test ./internal/market/mercari/ -run Integration
-```
-
-**CI gate**（`master` の PR/push）: `go test`, `go vet`, `go build ./cmd/sansai`。
-**Integration test** は手動 workflow またはローカル専用。
-
-用語は [CONTEXT.md](CONTEXT.md) を参照（Release / CI gate / Integration test 等）。
+検索 → 候補提示 → `get` で詳細取得、の流れが自然。
 
 ## 制約・注意
 
@@ -135,9 +125,3 @@ SANSAI_INTEGRATION=1 go test ./internal/market/mercari/ -run Integration
 - サイト側の HTML/API 変更で壊れる可能性がある。
 - メルカリは DPoP 署名付き API（`goForMercari` 由来）。
 - 過度なリクエストは避ける。Agent 利用時も件数・頻度に注意。
-
-## 実装時の指針
-
-- 最小差分。新マーケットは既存クライアント（`mercari`, `yahooauction`）のパターンに合わせる。
-- CLI や出力形式を変えるときは README と `schema` コマンドを同期する。
-- テストは HTTP モックで単体、実 API は Integration に分離。

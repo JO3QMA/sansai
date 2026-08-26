@@ -96,6 +96,17 @@ func example() error {
 
 ## Agent 連携例
 
+### Cursor Agent スキル
+
+CLI 利用用スキルは `skills/sansai/SKILL.md` にあります。Cursor が全プロジェクトで読む場所へコピーしてください:
+
+```bash
+mkdir -p ~/.cursor/skills/sansai
+cp skills/sansai/SKILL.md ~/.cursor/skills/sansai/
+```
+
+### ツール登録
+
 Cursor / Claude などの Agent に次のように登録します:
 
 ```json
