@@ -1,0 +1,20 @@
+name: Integration
+
+on:
+  workflow_dispatch:
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+          cache-dependency-path: go.sum
+
+      - name: Mercari integration test
+        env:
+          SANSAI_INTEGRATION: "1"
+        run: go test ./internal/market/mercari/ -run Integration -v
