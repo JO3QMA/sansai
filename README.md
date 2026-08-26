@@ -54,6 +54,46 @@ sansai markets
 sansai schema
 ```
 
+## Go ライブラリとして使う
+
+他の Go ツールからは `github.com/jo3qma/sansai` を import してください。
+
+```go
+import (
+    "context"
+    "github.com/jo3qma/sansai"
+)
+
+func example() error {
+    // 横断検索
+    resp, err := sansai.Search(context.Background(), "ポケモンカード", "all", sansai.SearchOptions{
+        Limit: 5,
+    })
+    if err != nil {
+        return err
+    }
+    _ = resp
+
+    // 単品取得
+    item, err := sansai.Get(context.Background(), sansai.MarketMercari, "m56797713000")
+    if err != nil {
+        return err
+    }
+    _ = item
+
+    // 単一マーケット用クライアント
+    client, err := sansai.NewClient(sansai.MarketYahooAuction)
+    if err != nil {
+        return err
+    }
+    result, err := client.Search(context.Background(), "nintendo switch", sansai.SearchOptions{Limit: 10})
+    _ = result
+    return err
+}
+```
+
+実装の詳細は `internal/` に閉じ込めてあり、公開 API はルートの `sansai` パッケージのみです。
+
 ## Agent 連携例
 
 Cursor / Claude などの Agent に次のように登録します:

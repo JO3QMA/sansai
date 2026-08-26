@@ -6,8 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/jo3qma/sansai/internal/market"
-	"github.com/jo3qma/sansai/internal/model"
+	"github.com/jo3qma/sansai"
 )
 
 var getCmd = &cobra.Command{
@@ -17,17 +16,12 @@ var getCmd = &cobra.Command{
 id: 各マーケットの商品ID`,
 	Args: cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		m, ok := model.ParseMarket(args[0])
+		m, ok := sansai.ParseMarket(args[0])
 		if !ok {
 			return fmt.Errorf("unknown market: %s", args[0])
 		}
 
-		client, err := market.New(m)
-		if err != nil {
-			return err
-		}
-
-		item, err := client.Get(context.Background(), args[1])
+		item, err := sansai.Get(context.Background(), m, args[1])
 		if err != nil {
 			return err
 		}
