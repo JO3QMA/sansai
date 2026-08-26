@@ -1,0 +1,33 @@
+version: 2
+
+updates:
+  - package-ecosystem: gomod
+    directory: "/"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: "github.com/google/uuid"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "github.com/spf13/cobra"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "github.com/inconshreveable/mousetrap"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "github.com/spf13/pflag"
+        update-types: ["version-update:semver-major"]
+    groups:
+      gomod-all:
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions-all:
+        patterns:
+          - "*"
