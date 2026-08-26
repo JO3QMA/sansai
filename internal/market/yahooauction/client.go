@@ -7,9 +7,9 @@ import (
 	"regexp"
 	"strconv"
 
-	"github.com/jo3qma/yafuoku/internal/httpclient"
-	"github.com/jo3qma/yafuoku/internal/model"
-	"github.com/jo3qma/yafuoku/internal/nextdata"
+	"github.com/jo3qma/sansai/internal/httpclient"
+	"github.com/jo3qma/sansai/internal/model"
+	"github.com/jo3qma/sansai/internal/nextdata"
 )
 
 const (

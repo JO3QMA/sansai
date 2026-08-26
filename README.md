@@ -1,6 +1,6 @@
-# yafuoku
+# sansai
 
-**yafuoku**（ヤフオク + フリマ + メルカリ）は、LLM Agent 向けの日本 C2C マーケット商品検索 CLI です。
+**sansai**（三サイト）は、LLM Agent 向けの日本 C2C マーケット商品検索 CLI です。
 
 対応マーケット:
 
@@ -15,9 +15,9 @@
 ## インストール
 
 ```bash
-go install ./cmd/yafuoku
+go install ./cmd/sansai
 # または
-go build -o bin/yafuoku ./cmd/yafuoku/
+go build -o bin/sansai ./cmd/sansai/
 ```
 
 ## 使い方
@@ -26,32 +26,32 @@ go build -o bin/yafuoku ./cmd/yafuoku/
 
 ```bash
 # 全マーケット横断検索
-yafuoku search "ポケモンカード" -n 5
+sansai search "ポケモンカード" -n 5
 
 # 特定マーケットのみ
-yafuoku search "nintendo switch" -m mercari -n 10
-yafuoku search "nintendo switch" -m yahoo_auction,yahoo_flea -n 5
+sansai search "nintendo switch" -m mercari -n 10
+sansai search "nintendo switch" -m yahoo_auction,yahoo_flea -n 5
 
 # 価格フィルタ
-yafuoku search "カメラ" --min-price 10000 --max-price 50000
+sansai search "カメラ" --min-price 10000 --max-price 50000
 ```
 
 ### 商品詳細
 
 ```bash
-yafuoku get mercari m56797713000
-yafuoku get yahoo_auction o1241906284
-yafuoku get yahoo_flea z668531248
+sansai get mercari m56797713000
+sansai get yahoo_auction o1241906284
+sansai get yahoo_flea z668531248
 ```
 
 ### Agent 向け
 
 ```bash
 # 対応マーケット一覧
-yafuoku markets
+sansai markets
 
 # ツール定義 (Function Calling 用)
-yafuoku schema
+sansai schema
 ```
 
 ## Agent 連携例
@@ -60,12 +60,12 @@ Cursor / Claude などの Agent に次のように登録します:
 
 ```json
 {
-  "command": "yafuoku",
+  "command": "sansai",
   "args": ["search", "{{query}}", "-n", "5"]
 }
 ```
 
-`yafuoku schema` の出力をそのままツール定義として使えます。
+`sansai schema` の出力をそのままツール定義として使えます。
 
 ## 注意事項
 
@@ -78,7 +78,7 @@ Cursor / Claude などの Agent に次のように登録します:
 
 ```bash
 go test ./...
-YAFUOKU_INTEGRATION=1 go test ./internal/market/mercari/ -run Integration
+SANSAI_INTEGRATION=1 go test ./internal/market/mercari/ -run Integration
 ```
 
 ## ライセンス

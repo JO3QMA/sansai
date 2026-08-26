@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/jo3qma/yafuoku/internal/model"
+	"github.com/jo3qma/sansai/internal/model"
 )
 
 var marketsCmd = &cobra.Command{

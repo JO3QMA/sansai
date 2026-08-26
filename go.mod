@@ -1,4 +1,4 @@
-module github.com/jo3qma/yafuoku
+module github.com/jo3qma/sansai
 
 go 1.22
 

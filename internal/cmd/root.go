@@ -9,9 +9,9 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "yafuoku",
+	Use:   "sansai",
 	Short: "LLM Agent向け 日本C2Cマーケット商品検索CLI",
-	Long: `yafuoku は Yahoo!オークション・Yahoo!フリマ・メルカリの商品情報を
+	Long: `sansai（三サイト）は Yahoo!オークション・Yahoo!フリマ・メルカリの商品情報を
 JSON形式で取得するCLIツールです。LLM Agentからのツール呼び出しを想定しています。`,
 }
 

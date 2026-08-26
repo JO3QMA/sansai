@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jo3qma/yafuoku/internal/market/mercari"
-	"github.com/jo3qma/yafuoku/internal/market/yahooauction"
-	"github.com/jo3qma/yafuoku/internal/market/yahooflea"
-	"github.com/jo3qma/yafuoku/internal/model"
+	"github.com/jo3qma/sansai/internal/market/mercari"
+	"github.com/jo3qma/sansai/internal/market/yahooauction"
+	"github.com/jo3qma/sansai/internal/market/yahooflea"
+	"github.com/jo3qma/sansai/internal/model"
 )
 
 type Client interface {

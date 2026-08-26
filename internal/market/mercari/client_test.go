@@ -6,12 +6,12 @@ import (
 	"os"
 	"testing"
 
-	"github.com/jo3qma/yafuoku/internal/model"
+	"github.com/jo3qma/sansai/internal/model"
 )
 
 func TestSearchIntegration(t *testing.T) {
-	if os.Getenv("YAFUOKU_INTEGRATION") == "" {
-		t.Skip("set YAFUOKU_INTEGRATION=1 to run")
+	if os.Getenv("SANSAI_INTEGRATION") == "" {
+		t.Skip("set SANSAI_INTEGRATION=1 to run")
 	}
 	c := &Client{}
 	res, err := c.Search(context.Background(), "nintendo switch", model.SearchOptions{Limit: 2})

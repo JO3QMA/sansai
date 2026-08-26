@@ -9,11 +9,11 @@ var schemaCmd = &cobra.Command{
 	Short: "LLM Agent向けツール定義をJSONで出力",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		schema := map[string]any{
-			"name":        "yafuoku",
+			"name":        "sansai",
 			"description": "日本のC2Cマーケット (Yahoo!オークション, Yahoo!フリマ, メルカリ) から商品情報を取得する",
 			"tools": []map[string]any{
 				{
-					"name":        "yafuoku_search",
+					"name":        "sansai_search",
 					"description": "キーワードで複数マーケットを横断検索する",
 					"parameters": map[string]any{
 						"type": "object",
@@ -45,7 +45,7 @@ var schemaCmd = &cobra.Command{
 					},
 				},
 				{
-					"name":        "yafuoku_get",
+					"name":        "sansai_get",
 					"description": "商品IDで詳細情報を取得する",
 					"parameters": map[string]any{
 						"type": "object",
