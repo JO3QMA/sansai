@@ -220,12 +220,12 @@ func itemFromDetail(raw mercariItemDetail) *model.Item {
 		SaleType:    model.SaleTypeFixedPrice,
 		Status:      raw.Status,
 		Condition:   raw.ItemCondition.Name,
-		Seller:      raw.Seller.Name,
+		Seller:      strconv.FormatInt(raw.Seller.ID, 10),
 	}
 
 	if raw.AuctionInfo != nil {
 		item.SaleType = model.SaleTypeAuction
-		if raw.AuctionInfo.TotalBids > 0 || raw.AuctionInfo.State != "STATE_NO_BID" {
+		if raw.AuctionInfo.TotalBids > 0 {
 			item.EndTime = unixRFC3339(raw.AuctionInfo.ExpectedEndTime)
 		}
 	}

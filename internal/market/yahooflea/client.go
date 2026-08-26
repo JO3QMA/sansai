@@ -72,17 +72,17 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 			continue
 		}
 		items = append(items, model.Item{
-			Market:   model.MarketYahooFlea,
-			ID:       it.ID,
-			Title:    it.Title,
-			Price:    it.Price,
-			Currency: "JPY",
-			URL:      itemBase + it.ID,
-			ImageURL: it.ThumbnailImageURL,
-			Status:   it.ItemStatus,
+			Market:    model.MarketYahooFlea,
+			ID:        it.ID,
+			Title:     it.Title,
+			Price:     it.Price,
+			Currency:  "JPY",
+			URL:       itemBase + it.ID,
+			ImageURL:  it.ThumbnailImageURL,
+			Status:    it.ItemStatus,
 			Condition: it.Condition,
-			Seller:   it.SellerID,
-			SaleType: model.SaleTypeFixedPrice,
+			Seller:    it.SellerID,
+			SaleType:  model.SaleTypeFixedPrice,
 		})
 		if len(items) >= opts.Limit {
 			break
