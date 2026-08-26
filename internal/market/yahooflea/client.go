@@ -72,16 +72,17 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 			continue
 		}
 		items = append(items, model.Item{
-			Market:    model.MarketYahooFlea,
-			ID:        it.ID,
-			Title:     it.Title,
-			Price:     it.Price,
-			Currency:  "JPY",
-			URL:       itemBase + it.ID,
-			ImageURL:  it.ThumbnailImageURL,
-			Status:    it.ItemStatus,
+			Market:   model.MarketYahooFlea,
+			ID:       it.ID,
+			Title:    it.Title,
+			Price:    it.Price,
+			Currency: "JPY",
+			URL:      itemBase + it.ID,
+			ImageURL: it.ThumbnailImageURL,
+			Status:   it.ItemStatus,
 			Condition: it.Condition,
-			Seller:    it.SellerID,
+			Seller:   it.SellerID,
+			SaleType: model.SaleTypeFixedPrice,
 		})
 		if len(items) >= opts.Limit {
 			break
@@ -108,23 +109,7 @@ func (c *Client) Get(_ context.Context, id string) (*model.Item, error) {
 			InitialState struct {
 				ItemsState struct {
 					Items struct {
-						Item struct {
-							ID          string `json:"id"`
-							Title       string `json:"title"`
-							Description string `json:"description"`
-							Price       int    `json:"price"`
-							Status      string `json:"status"`
-							LikeCount   int    `json:"likeCount"`
-							Images      []struct {
-								URL string `json:"url"`
-							} `json:"images"`
-							Condition struct {
-								Text string `json:"text"`
-							} `json:"condition"`
-							Brand struct {
-								Name string `json:"name"`
-							} `json:"brand"`
-						} `json:"item"`
+						Item fleaItemDetail `json:"item"`
 					} `json:"items"`
 				} `json:"itemsState"`
 			} `json:"initialState"`
@@ -139,25 +124,55 @@ func (c *Client) Get(_ context.Context, id string) (*model.Item, error) {
 		return nil, fmt.Errorf("item %s not found", id)
 	}
 
+	return itemFromDetail(raw), nil
+}
+
+type fleaItemDetail struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Price       int    `json:"price"`
+	Status      string `json:"status"`
+	LikeCount   int    `json:"likeCount"`
+	Images      []struct {
+		URL string `json:"url"`
+	} `json:"images"`
+	Condition struct {
+		Text string `json:"text"`
+	} `json:"condition"`
+	Brand struct {
+		Name string `json:"name"`
+	} `json:"brand"`
+}
+
+func itemFromDetail(raw fleaItemDetail) *model.Item {
+	imageURLs := make([]string, 0, len(raw.Images))
+	for _, img := range raw.Images {
+		if img.URL != "" {
+			imageURLs = append(imageURLs, img.URL)
+		}
+	}
 	imageURL := ""
-	if len(raw.Images) > 0 {
-		imageURL = raw.Images[0].URL
+	if len(imageURLs) > 0 {
+		imageURL = imageURLs[0]
 	}
 
 	return &model.Item{
-		Market:    model.MarketYahooFlea,
-		ID:        raw.ID,
-		Title:     raw.Title,
-		Price:     raw.Price,
-		Currency:  "JPY",
-		URL:       itemBase + raw.ID,
-		ImageURL:  imageURL,
-		Status:    raw.Status,
-		Condition: raw.Condition.Text,
+		Market:      model.MarketYahooFlea,
+		ID:          raw.ID,
+		Title:       raw.Title,
+		Price:       raw.Price,
+		Currency:    "JPY",
+		URL:         itemBase + raw.ID,
+		ImageURL:    imageURL,
+		ImageURLs:   imageURLs,
+		Description: strings.TrimSpace(raw.Description),
+		SaleType:    model.SaleTypeFixedPrice,
+		Status:      raw.Status,
+		Condition:   raw.Condition.Text,
 		Extra: map[string]any{
-			"description": strings.TrimSpace(raw.Description),
-			"like_count":  raw.LikeCount,
-			"brand":       raw.Brand.Name,
+			"like_count": raw.LikeCount,
+			"brand":      raw.Brand.Name,
 		},
-	}, nil
+	}
 }

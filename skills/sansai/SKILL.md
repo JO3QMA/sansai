@@ -102,8 +102,26 @@ sansai schema   # Function Calling 用 JSON
 }
 
 // Item（get）
-{ "market": "mercari", "id": "...", "title": "...", "price": 1000, ... }
+{
+  "market": "mercari",
+  "id": "m56797713000",
+  "title": "商品名",
+  "price": 1000,
+  "currency": "JPY",
+  "url": "https://...",
+  "image_url": "https://...",
+  "image_urls": ["https://...", "https://..."],
+  "description": "出品説明文",
+  "sale_type": "fixed_price",
+  "end_time": "2026-08-28T20:00:00+09:00",
+  "status": "on_sale",
+  "condition": "新品",
+  "seller": "出品者",
+  "extra": {}
+}
 ```
+
+`sale_type` は `auction` または `fixed_price`。`end_time` は RFC3339。メルカリオークションで入札前は `end_time` を省略する場合がある。
 
 ## Agent 連携
 

@@ -25,18 +25,29 @@ func ParseMarket(s string) (Market, bool) {
 	}
 }
 
+type SaleType string
+
+const (
+	SaleTypeAuction    SaleType = "auction"
+	SaleTypeFixedPrice SaleType = "fixed_price"
+)
+
 type Item struct {
-	Market    Market `json:"market"`
-	ID        string `json:"id"`
-	Title     string `json:"title"`
-	Price     int    `json:"price"`
-	Currency  string `json:"currency"`
-	URL       string `json:"url"`
-	ImageURL  string `json:"image_url,omitempty"`
-	Status    string `json:"status,omitempty"`
-	Condition string `json:"condition,omitempty"`
-	Seller    string `json:"seller,omitempty"`
-	Extra     any    `json:"extra,omitempty"`
+	Market      Market   `json:"market"`
+	ID          string   `json:"id"`
+	Title       string   `json:"title"`
+	Price       int      `json:"price"`
+	Currency    string   `json:"currency"`
+	URL         string   `json:"url"`
+	ImageURL    string   `json:"image_url,omitempty"`
+	ImageURLs   []string `json:"image_urls,omitempty"`
+	Description string   `json:"description,omitempty"`
+	SaleType    SaleType `json:"sale_type,omitempty"`
+	EndTime     string   `json:"end_time,omitempty"`
+	Status      string   `json:"status,omitempty"`
+	Condition   string   `json:"condition,omitempty"`
+	Seller      string   `json:"seller,omitempty"`
+	Extra       any      `json:"extra,omitempty"`
 }
 
 type SearchOptions struct {

@@ -9,6 +9,74 @@ import (
 	"github.com/jo3qma/sansai/internal/model"
 )
 
+func TestItemFromDetailFixture(t *testing.T) {
+	t.Run("fixed_price", func(t *testing.T) {
+		raw := readFixture(t, "testdata/item_fixed_price.json")
+		var detail mercariItemDetail
+		json.Unmarshal(raw, &detail)
+		item := itemFromDetail(detail)
+
+		if item.SaleType != model.SaleTypeFixedPrice {
+			t.Fatalf("sale_type: got %q", item.SaleType)
+		}
+		if item.Description != "固定価格の説明" {
+			t.Fatalf("description: got %q", item.Description)
+		}
+		if len(item.ImageURLs) != 2 {
+			t.Fatalf("image_urls: got %#v", item.ImageURLs)
+		}
+		if item.EndTime != "" {
+			t.Fatalf("end_time should be empty: %q", item.EndTime)
+		}
+	})
+
+	t.Run("auction_with_bids", func(t *testing.T) {
+		raw := readFixture(t, "testdata/item_auction_bids.json")
+		var detail mercariItemDetail
+		json.Unmarshal(raw, &detail)
+		item := itemFromDetail(detail)
+
+		if item.SaleType != model.SaleTypeAuction {
+			t.Fatalf("sale_type: got %q", item.SaleType)
+		}
+		if item.EndTime == "" {
+			t.Fatal("expected end_time")
+		}
+	})
+
+	t.Run("auction_no_bid", func(t *testing.T) {
+		raw := readFixture(t, "testdata/item_auction_no_bid.json")
+		var detail mercariItemDetail
+		json.Unmarshal(raw, &detail)
+		item := itemFromDetail(detail)
+
+		if item.SaleType != model.SaleTypeAuction {
+			t.Fatalf("sale_type: got %q", item.SaleType)
+		}
+		if item.EndTime != "" {
+			t.Fatalf("end_time should be omitted before first bid: %q", item.EndTime)
+		}
+	})
+}
+
+func TestUnixRFC3339(t *testing.T) {
+	got := unixRFC3339(1787915990)
+	if got == "" {
+		t.Fatal("expected RFC3339 time")
+	}
+	if unixRFC3339(0) != "" {
+		t.Fatal("zero should be empty")
+	}
+}
+
+func readFixture(t *testing.T, path string) []byte {
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return raw
+}
+
 func TestSearchIntegration(t *testing.T) {
 	if os.Getenv("SANSAI_INTEGRATION") == "" {
 		t.Skip("set SANSAI_INTEGRATION=1 to run")

@@ -1,0 +1,16 @@
+{
+  "id": "m98765432109",
+  "name": "オークション商品",
+  "price": 2099,
+  "status": "on_sale",
+  "description": "オークションの説明",
+  "photos": ["https://example.com/auction1.jpg"],
+  "thumbnails": ["https://example.com/auction_thumb.jpg"],
+  "item_condition": {"name": "未使用に近い"},
+  "seller": {"id": 2, "name": "オークション出品者"},
+  "auction_info": {
+    "expected_end_time": 1787915990,
+    "total_bids": 1,
+    "state": "STATE_ONGOING"
+  }
+}

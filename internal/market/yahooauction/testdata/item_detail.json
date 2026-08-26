@@ -1,0 +1,15 @@
+{
+  "auctionId": "l1241549154",
+  "title": "テスト商品",
+  "price": 9550,
+  "buyNowPrice": 10000,
+  "endTime": "2026-08-28T22:25:00+09:00",
+  "itemStatus": "open",
+  "conditionName": "目立った傷や汚れなし",
+  "description": ["説明1", "説明2"],
+  "img": [
+    {"image": "https://example.com/img1.jpg"},
+    {"image": "https://example.com/img2.jpg"}
+  ],
+  "seller": {"aucUserId": "seller123"}
+}

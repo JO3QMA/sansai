@@ -12,6 +12,15 @@
 
 出力はすべて JSON です。Agent からのツール呼び出しを想定しています。
 
+`get` で返る `Item` には Bot 連携向けの正規フィールドがあります:
+
+| フィールド | 型 | 説明 |
+|---|---|---|
+| `description` | string | 出品説明文 |
+| `image_urls` | []string | 画像 URL 一覧 |
+| `sale_type` | `"auction"` \| `"fixed_price"` | 販売形式 |
+| `end_time` | string (RFC3339) | オークション終了時刻（該当時のみ） |
+
 ## インストール
 
 ```bash

@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/jo3qma/sansai/internal/httpclient"
 	"github.com/jo3qma/sansai/internal/model"
@@ -73,21 +74,7 @@ func (c *Client) Get(_ context.Context, id string) (*model.Item, error) {
 				InitialState struct {
 					Item struct {
 						Detail struct {
-							Item struct {
-								AuctionID     string `json:"auctionId"`
-								Title         string `json:"title"`
-								Price         int    `json:"price"`
-								BuyNowPrice   int    `json:"buyNowPrice"`
-								EndTime       string `json:"endTime"`
-								ItemStatus    string `json:"itemStatus"`
-								ConditionName string `json:"conditionName"`
-								Images        []struct {
-									Image string `json:"image"`
-								} `json:"images"`
-								Seller struct {
-									AucUserID string `json:"aucUserId"`
-								} `json:"seller"`
-							} `json:"item"`
+							Item auctionItemDetail `json:"item"`
 						} `json:"detail"`
 					} `json:"item"`
 				} `json:"initialState"`
@@ -103,27 +90,64 @@ func (c *Client) Get(_ context.Context, id string) (*model.Item, error) {
 		return nil, fmt.Errorf("item %s not found", id)
 	}
 
+	return itemFromDetail(raw), nil
+}
+
+type auctionItemDetail struct {
+	AuctionID     string   `json:"auctionId"`
+	Title         string   `json:"title"`
+	Price         int      `json:"price"`
+	BuyNowPrice   int      `json:"buyNowPrice"`
+	EndTime       string   `json:"endTime"`
+	ItemStatus    string   `json:"itemStatus"`
+	ConditionName string   `json:"conditionName"`
+	Description   []string `json:"description"`
+	Img           []struct {
+		Image string `json:"image"`
+	} `json:"img"`
+	Seller struct {
+		AucUserID string `json:"aucUserId"`
+	} `json:"seller"`
+}
+
+func itemFromDetail(raw auctionItemDetail) *model.Item {
+	imageURLs := make([]string, 0, len(raw.Img))
+	for _, img := range raw.Img {
+		if img.Image != "" {
+			imageURLs = append(imageURLs, img.Image)
+		}
+	}
 	imageURL := ""
-	if len(raw.Images) > 0 {
-		imageURL = raw.Images[0].Image
+	if len(imageURLs) > 0 {
+		imageURL = imageURLs[0]
 	}
 
 	return &model.Item{
-		Market:    model.MarketYahooAuction,
-		ID:        raw.AuctionID,
-		Title:     raw.Title,
-		Price:     raw.Price,
-		Currency:  "JPY",
-		URL:       itemBase + raw.AuctionID,
-		ImageURL:  imageURL,
-		Status:    raw.ItemStatus,
-		Condition: raw.ConditionName,
-		Seller:    raw.Seller.AucUserID,
+		Market:      model.MarketYahooAuction,
+		ID:          raw.AuctionID,
+		Title:       raw.Title,
+		Price:       raw.Price,
+		Currency:    "JPY",
+		URL:         itemBase + raw.AuctionID,
+		ImageURL:    imageURL,
+		ImageURLs:   imageURLs,
+		Description: joinDescription(raw.Description),
+		SaleType:    model.SaleTypeAuction,
+		EndTime:     raw.EndTime,
+		Status:      raw.ItemStatus,
+		Condition:   raw.ConditionName,
+		Seller:      raw.Seller.AucUserID,
 		Extra: map[string]any{
 			"buy_now_price": raw.BuyNowPrice,
-			"end_time":      raw.EndTime,
 		},
-	}, nil
+	}
+}
+
+func joinDescription(parts []string) string {
+	if len(parts) == 0 {
+		return ""
+	}
+	return strings.TrimSpace(strings.Join(parts, "\n"))
 }
 
 func parseSearchHTML(html string, minPrice, maxPrice int) []model.Item {
@@ -159,6 +183,7 @@ func parseSearchHTML(html string, minPrice, maxPrice int) []model.Item {
 			Currency: "JPY",
 			URL:      itemBase + id,
 			ImageURL: attr(block, `data-auction-img`),
+			SaleType: model.SaleTypeAuction,
 		})
 	}
 	return items
