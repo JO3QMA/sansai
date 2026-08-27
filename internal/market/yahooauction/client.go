@@ -141,6 +141,7 @@ func itemFromDetail(raw auctionItemDetail) *model.Item {
 	if raw.EndTime != "" {
 		item.EndTime = raw.EndTime
 	}
+	item.IsActive = model.IsActive(model.MarketYahooAuction, raw.ItemStatus, "")
 	return item
 }
 

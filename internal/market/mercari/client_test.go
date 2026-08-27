@@ -28,6 +28,9 @@ func TestItemFromDetailFixture(t *testing.T) {
 		if item.EndTime != "" {
 			t.Fatalf("end_time should be empty: %q", item.EndTime)
 		}
+		if !item.IsActive {
+			t.Fatal("expected is_active=true for on_sale")
+		}
 	})
 
 	t.Run("auction_with_bids", func(t *testing.T) {
@@ -55,6 +58,17 @@ func TestItemFromDetailFixture(t *testing.T) {
 		}
 		if item.EndTime != "" {
 			t.Fatalf("end_time should be omitted before first bid: %q", item.EndTime)
+		}
+	})
+
+	t.Run("sold_out", func(t *testing.T) {
+		raw := readFixture(t, "testdata/item_sold_out.json")
+		var detail mercariItemDetail
+		json.Unmarshal(raw, &detail)
+		item := itemFromDetail(detail)
+
+		if item.IsActive {
+			t.Fatal("expected is_active=false for sold_out")
 		}
 	})
 }

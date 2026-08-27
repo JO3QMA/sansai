@@ -20,6 +20,7 @@
 | `image_urls` | []string | 画像 URL 一覧 |
 | `sale_type` | `"auction"` \| `"fixed_price"` | 販売形式 |
 | `end_time` | string (RFC3339) | オークション終了時刻（該当時のみ） |
+| `is_active` | bool | 購入・入札可能なら `true`。売切れ・終了・取消等は `false` |
 
 ## インストール
 

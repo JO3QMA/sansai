@@ -45,6 +45,7 @@ type Item struct {
 	SaleType    SaleType `json:"sale_type,omitempty"`
 	EndTime     string   `json:"end_time,omitempty"`
 	Status      string   `json:"status,omitempty"`
+	IsActive    bool     `json:"is_active"`
 	Condition   string   `json:"condition,omitempty"`
 	Seller      string   `json:"seller,omitempty"`
 	Extra       any      `json:"extra,omitempty"`

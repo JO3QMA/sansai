@@ -46,7 +46,7 @@ var schemaCmd = &cobra.Command{
 				},
 				{
 					"name":        "sansai_get",
-					"description": "商品IDで詳細情報を取得する。返却 Item には description, image_urls, sale_type (auction|fixed_price), end_time (オークション・入札後) を含む",
+					"description": "商品IDで詳細情報を取得する。返却 Item には description, image_urls, sale_type (auction|fixed_price), end_time (オークション・入札後), is_active (購入・入札可能か) を含む",
 					"parameters": map[string]any{
 						"type": "object",
 						"properties": map[string]any{

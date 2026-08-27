@@ -115,6 +115,7 @@ sansai schema   # Function Calling 用 JSON
   "sale_type": "fixed_price",
   "end_time": "2026-08-28T20:00:00+09:00",
   "status": "on_sale",
+  "is_active": true,
   "condition": "新品",
   "seller": "出品者",
   "extra": {}

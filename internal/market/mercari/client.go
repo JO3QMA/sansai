@@ -122,6 +122,7 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 			ImageURL:  imageURL,
 			ImageURLs: it.Thumbnails,
 			Status:    it.Status,
+			IsActive:  model.IsActive(model.MarketMercari, it.Status, ""),
 			Condition: conditionLabel(it.ItemConditionID),
 			Seller:    it.SellerID,
 			SaleType:  model.SaleTypeFixedPrice,
@@ -230,6 +231,12 @@ func itemFromDetail(raw mercariItemDetail) *model.Item {
 			item.EndTime = unixRFC3339(raw.AuctionInfo.ExpectedEndTime)
 		}
 	}
+
+	auctionState := ""
+	if raw.AuctionInfo != nil {
+		auctionState = raw.AuctionInfo.State
+	}
+	item.IsActive = model.IsActive(model.MarketMercari, raw.Status, auctionState)
 
 	return item
 }

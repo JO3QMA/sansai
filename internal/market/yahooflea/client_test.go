@@ -33,4 +33,23 @@ func TestItemFromDetailFixture(t *testing.T) {
 			t.Fatalf("description should not be in extra")
 		}
 	}
+	if !item.IsActive {
+		t.Fatal("expected is_active=true for open listing")
+	}
+}
+
+func TestItemFromDetailFixtureInactive(t *testing.T) {
+	raw, err := os.ReadFile("testdata/item_sold.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var detail fleaItemDetail
+	if err := json.Unmarshal(raw, &detail); err != nil {
+		t.Fatal(err)
+	}
+
+	item := itemFromDetail(detail)
+	if item.IsActive {
+		t.Fatal("expected is_active=false for sold listing")
+	}
 }
