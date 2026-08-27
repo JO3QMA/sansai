@@ -120,6 +120,7 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 			Currency:  "JPY",
 			URL:       itemBase + it.ID,
 			ImageURL:  imageURL,
+			ImageURLs: it.Thumbnails,
 			Status:    it.Status,
 			Condition: conditionLabel(it.ItemConditionID),
 			Seller:    it.SellerID,

@@ -163,6 +163,7 @@ func imageURLsFromAuction(img, images []struct {
 func joinDescription(parts []string) string {
 	nonEmpty := make([]string, 0, len(parts))
 	for _, part := range parts {
+		part = strings.TrimSpace(part)
 		if part != "" {
 			nonEmpty = append(nonEmpty, part)
 		}
