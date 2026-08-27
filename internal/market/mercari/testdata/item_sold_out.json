@@ -1,0 +1,11 @@
+{
+  "id": "m12345678901",
+  "name": "売切れ商品",
+  "price": 1000,
+  "status": "sold_out",
+  "description": "売切れの説明",
+  "photos": ["https://example.com/photo1.jpg"],
+  "thumbnails": ["https://example.com/thumb1.jpg"],
+  "item_condition": {"name": "新品、未使用"},
+  "seller": {"id": 1, "name": "出品者"}
+}

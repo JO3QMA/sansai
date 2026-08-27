@@ -41,6 +41,25 @@ func TestItemFromDetailFixture(t *testing.T) {
 	if extra, ok := item.Extra.(map[string]any); !ok || extra["end_time"] != nil {
 		t.Fatalf("end_time should not be in extra: %#v", item.Extra)
 	}
+	if !item.IsActive {
+		t.Fatal("expected is_active=true for open auction")
+	}
+}
+
+func TestItemFromDetailFixtureInactive(t *testing.T) {
+	raw, err := os.ReadFile("testdata/item_closed.json")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var detail auctionItemDetail
+	if err := json.Unmarshal(raw, &detail); err != nil {
+		t.Fatal(err)
+	}
+
+	item := itemFromDetail(detail)
+	if item.IsActive {
+		t.Fatal("expected is_active=false for closed auction")
+	}
 }
 
 func TestParseSearchHTML(t *testing.T) {
@@ -57,5 +76,8 @@ func TestParseSearchHTML(t *testing.T) {
 	}
 	if items[0].SaleType != model.SaleTypeAuction {
 		t.Fatalf("sale_type: got %q", items[0].SaleType)
+	}
+	if !items[0].IsActive {
+		t.Fatal("expected is_active=true for search results")
 	}
 }

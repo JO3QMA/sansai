@@ -1,0 +1,13 @@
+{
+  "id": "z668531249",
+  "title": "売切れフリマ商品",
+  "description": "売切れ説明文",
+  "price": 1500,
+  "status": "sold",
+  "likeCount": 3,
+  "images": [
+    {"url": "https://example.com/flea1.jpg"}
+  ],
+  "condition": {"text": "新品"},
+  "brand": {"name": "任天堂"}
+}

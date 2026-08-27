@@ -1,0 +1,14 @@
+{
+  "auctionId": "l1241549154",
+  "title": "終了オークション",
+  "price": 9550,
+  "buyNowPrice": 10000,
+  "endTime": "2026-08-28T22:25:00+09:00",
+  "itemStatus": "closed",
+  "conditionName": "目立った傷や汚れなし",
+  "description": ["説明1"],
+  "img": [
+    {"image": "https://example.com/img1.jpg"}
+  ],
+  "seller": {"aucUserId": "seller123"}
+}

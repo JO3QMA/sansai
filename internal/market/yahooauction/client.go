@@ -141,6 +141,7 @@ func itemFromDetail(raw auctionItemDetail) *model.Item {
 	if raw.EndTime != "" {
 		item.EndTime = raw.EndTime
 	}
+	item.IsActive = model.IsActive(model.MarketYahooAuction, raw.ItemStatus, "")
 	return item
 }
 
@@ -205,6 +206,7 @@ func parseSearchHTML(html string, minPrice, maxPrice int) []model.Item {
 			URL:      itemBase + id,
 			ImageURL: attr(block, `data-auction-img`),
 			SaleType: model.SaleTypeAuction,
+			IsActive: model.IsActive(model.MarketYahooAuction, "open", ""),
 		})
 	}
 	return items

@@ -80,6 +80,7 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 			URL:       itemBase + it.ID,
 			ImageURL:  it.ThumbnailImageURL,
 			Status:    it.ItemStatus,
+			IsActive:  model.IsActive(model.MarketYahooFlea, it.ItemStatus, ""),
 			Condition: it.Condition,
 			Seller:    it.SellerID,
 			SaleType:  model.SaleTypeFixedPrice,
@@ -169,6 +170,7 @@ func itemFromDetail(raw fleaItemDetail) *model.Item {
 		Description: strings.TrimSpace(raw.Description),
 		SaleType:    model.SaleTypeFixedPrice,
 		Status:      raw.Status,
+		IsActive:    model.IsActive(model.MarketYahooFlea, raw.Status, ""),
 		Condition:   raw.Condition.Text,
 		Extra: map[string]any{
 			"like_count": raw.LikeCount,
