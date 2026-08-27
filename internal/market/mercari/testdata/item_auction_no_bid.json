@@ -1,0 +1,16 @@
+{
+  "id": "m11111111111",
+  "name": "入札前オークション",
+  "price": 800,
+  "status": "on_sale",
+  "description": "入札前",
+  "photos": ["https://example.com/prebid.jpg"],
+  "thumbnails": ["https://example.com/prebid_thumb.jpg"],
+  "item_condition": {"name": "やや傷や汚れあり"},
+  "seller": {"id": 3, "name": "入札前出品者"},
+  "auction_info": {
+    "expected_end_time": 1787916004,
+    "total_bids": 0,
+    "state": "STATE_NO_BID"
+  }
+}

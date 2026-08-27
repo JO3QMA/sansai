@@ -44,14 +44,15 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 	}
 
 	body := map[string]any{
-		"pageSize":          opts.Limit,
-		"searchSessionId":   uuid.New().String(),
-		"serviceFrom":       "suruga",
-		"withItemBrand":     true,
-		"withItemSize":      false,
+		"pageSize":           opts.Limit,
+		"searchSessionId":    uuid.New().String(),
+		"serviceFrom":        "suruga",
+		"withItemBrand":      true,
+		"withItemSize":       false,
 		"withItemPromotions": true,
-		"withItemSizes":     true,
-		"withShopname":      false,
+		"withItemSizes":      true,
+		"withShopname":       false,
+		"withAuction":        true,
 		"searchCondition": map[string]any{
 			"keyword":          query,
 			"sort":             "SORT_SCORE",
@@ -90,6 +91,10 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 			Thumbnails       []string `json:"thumbnails"`
 			ItemConditionID  string   `json:"itemConditionId"`
 			SellerID         string   `json:"sellerId"`
+			Auction          *struct {
+				BidDeadline string `json:"bidDeadline"`
+				TotalBid    int    `json:"totalBid"`
+			} `json:"auction"`
 		} `json:"items"`
 		Meta struct {
 			NumFound string `json:"numFound"`
@@ -107,7 +112,7 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 		if len(it.Thumbnails) > 0 {
 			imageURL = it.Thumbnails[0]
 		}
-		items = append(items, model.Item{
+		item := model.Item{
 			Market:    model.MarketMercari,
 			ID:        it.ID,
 			Title:     it.Name,
@@ -115,10 +120,19 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 			Currency:  "JPY",
 			URL:       itemBase + it.ID,
 			ImageURL:  imageURL,
+			ImageURLs: it.Thumbnails,
 			Status:    it.Status,
 			Condition: conditionLabel(it.ItemConditionID),
 			Seller:    it.SellerID,
-		})
+			SaleType:  model.SaleTypeFixedPrice,
+		}
+		if it.Auction != nil {
+			item.SaleType = model.SaleTypeAuction
+			if it.Auction.TotalBid > 0 {
+				item.EndTime = it.Auction.BidDeadline
+			}
+		}
+		items = append(items, item)
 	}
 
 	return &model.SearchResult{
@@ -131,7 +145,7 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 }
 
 func (c *Client) Get(_ context.Context, id string) (*model.Item, error) {
-	target := itemURL + "?id=" + id
+	target := itemURL + "?id=" + id + "&include_auction=true"
 	req, err := http.NewRequest(http.MethodGet, target, nil)
 	if err != nil {
 		return nil, err
@@ -150,21 +164,7 @@ func (c *Client) Get(_ context.Context, id string) (*model.Item, error) {
 	}
 
 	var resp struct {
-		Data struct {
-			ID            string   `json:"id"`
-			Name          string   `json:"name"`
-			Price         int      `json:"price"`
-			Status        string   `json:"status"`
-			Description   string   `json:"description"`
-			Thumbnails    []string `json:"thumbnails"`
-			ItemCondition struct {
-				Name string `json:"name"`
-			} `json:"item_condition"`
-			Seller struct {
-				ID   int64  `json:"id"`
-				Name string `json:"name"`
-			} `json:"seller"`
-		} `json:"data"`
+		Data mercariItemDetail `json:"data"`
 	}
 	if err := json.Unmarshal(raw, &resp); err != nil {
 		return nil, fmt.Errorf("parse mercari item response: %w", err)
@@ -173,26 +173,72 @@ func (c *Client) Get(_ context.Context, id string) (*model.Item, error) {
 		return nil, fmt.Errorf("item %s not found", id)
 	}
 
+	return itemFromDetail(resp.Data), nil
+}
+
+type mercariItemDetail struct {
+	ID            string   `json:"id"`
+	Name          string   `json:"name"`
+	Price         int      `json:"price"`
+	Status        string   `json:"status"`
+	Description   string   `json:"description"`
+	Photos        []string `json:"photos"`
+	Thumbnails    []string `json:"thumbnails"`
+	ItemCondition struct {
+		Name string `json:"name"`
+	} `json:"item_condition"`
+	Seller struct {
+		ID   int64  `json:"id"`
+		Name string `json:"name"`
+	} `json:"seller"`
+	AuctionInfo *struct {
+		ExpectedEndTime int64  `json:"expected_end_time"`
+		TotalBids       int    `json:"total_bids"`
+		State           string `json:"state"`
+	} `json:"auction_info"`
+}
+
+func itemFromDetail(raw mercariItemDetail) *model.Item {
+	imageURLs := raw.Photos
+	if len(imageURLs) == 0 {
+		imageURLs = raw.Thumbnails
+	}
 	imageURL := ""
-	if len(resp.Data.Thumbnails) > 0 {
-		imageURL = resp.Data.Thumbnails[0]
+	if len(imageURLs) > 0 {
+		imageURL = imageURLs[0]
 	}
 
-	return &model.Item{
-		Market:    model.MarketMercari,
-		ID:        resp.Data.ID,
-		Title:     resp.Data.Name,
-		Price:     resp.Data.Price,
-		Currency:  "JPY",
-		URL:       itemBase + resp.Data.ID,
-		ImageURL:  imageURL,
-		Status:    resp.Data.Status,
-		Condition: resp.Data.ItemCondition.Name,
-		Seller:    resp.Data.Seller.Name,
-		Extra: map[string]any{
-			"description": strings.TrimSpace(resp.Data.Description),
-		},
-	}, nil
+	item := &model.Item{
+		Market:      model.MarketMercari,
+		ID:          raw.ID,
+		Title:       raw.Name,
+		Price:       raw.Price,
+		Currency:    "JPY",
+		URL:         itemBase + raw.ID,
+		ImageURL:    imageURL,
+		ImageURLs:   imageURLs,
+		Description: strings.TrimSpace(raw.Description),
+		SaleType:    model.SaleTypeFixedPrice,
+		Status:      raw.Status,
+		Condition:   raw.ItemCondition.Name,
+		Seller:      strconv.FormatInt(raw.Seller.ID, 10),
+	}
+
+	if raw.AuctionInfo != nil {
+		item.SaleType = model.SaleTypeAuction
+		if raw.AuctionInfo.TotalBids > 0 {
+			item.EndTime = unixRFC3339(raw.AuctionInfo.ExpectedEndTime)
+		}
+	}
+
+	return item
+}
+
+func unixRFC3339(sec int64) string {
+	if sec <= 0 {
+		return ""
+	}
+	return time.Unix(sec, 0).UTC().Format(time.RFC3339)
 }
 
 func (c *Client) postJSON(url string, payload any) ([]byte, error) {

@@ -1,0 +1,14 @@
+{
+  "id": "m12345678901",
+  "name": "固定価格商品",
+  "price": 1000,
+  "status": "on_sale",
+  "description": "固定価格の説明",
+  "photos": [
+    "https://example.com/photo1.jpg",
+    "https://example.com/photo2.jpg"
+  ],
+  "thumbnails": ["https://example.com/thumb1.jpg"],
+  "item_condition": {"name": "新品、未使用"},
+  "seller": {"id": 1, "name": "出品者"}
+}

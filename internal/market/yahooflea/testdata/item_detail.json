@@ -1,0 +1,14 @@
+{
+  "id": "z668531248",
+  "title": "フリマ商品",
+  "description": "フリマ説明文",
+  "price": 1500,
+  "status": "open",
+  "likeCount": 3,
+  "images": [
+    {"url": "https://example.com/flea1.jpg"},
+    {"url": "https://example.com/flea2.jpg"}
+  ],
+  "condition": {"text": "新品"},
+  "brand": {"name": "任天堂"}
+}
