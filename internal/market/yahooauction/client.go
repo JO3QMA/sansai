@@ -206,6 +206,7 @@ func parseSearchHTML(html string, minPrice, maxPrice int) []model.Item {
 			URL:      itemBase + id,
 			ImageURL: attr(block, `data-auction-img`),
 			SaleType: model.SaleTypeAuction,
+			IsActive: model.IsActive(model.MarketYahooAuction, "open", ""),
 		})
 	}
 	return items

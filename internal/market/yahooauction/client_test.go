@@ -77,4 +77,7 @@ func TestParseSearchHTML(t *testing.T) {
 	if items[0].SaleType != model.SaleTypeAuction {
 		t.Fatalf("sale_type: got %q", items[0].SaleType)
 	}
+	if !items[0].IsActive {
+		t.Fatal("expected is_active=true for search results")
+	}
 }
