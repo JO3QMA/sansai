@@ -3,7 +3,9 @@ package yahooauction
 import (
 	"encoding/json"
 	"os"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/jo3qma/sansai/internal/model"
 )
@@ -36,6 +38,40 @@ func TestDescriptionTruncatedFlag(t *testing.T) {
 	extra := auctionExtra(raw)
 	if extra["description_truncated"] != true {
 		t.Fatalf("extra: %#v", extra)
+	}
+}
+
+func TestYahooSearchStatus(t *testing.T) {
+	t.Parallel()
+	future := strconv.FormatInt(time.Now().Add(24*time.Hour).Unix(), 10)
+	past := strconv.FormatInt(time.Now().Add(-24*time.Hour).Unix(), 10)
+
+	if got := yahooSearchStatus(future); got != "open" {
+		t.Fatalf("future: got %q", got)
+	}
+	if got := yahooSearchStatus(past); got != "closed" {
+		t.Fatalf("past: got %q", got)
+	}
+}
+
+func TestYahooAuctionPageSize(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		limit int
+		want  int
+	}{
+		{limit: 1, want: 20},
+		{limit: 8, want: 20},
+		{limit: 20, want: 20},
+		{limit: 21, want: 50},
+		{limit: 50, want: 50},
+		{limit: 51, want: 100},
+		{limit: 100, want: 100},
+	}
+	for _, tt := range tests {
+		if got := yahooAuctionPageSize(tt.limit); got != tt.want {
+			t.Fatalf("yahooAuctionPageSize(%d) = %d, want %d", tt.limit, got, tt.want)
+		}
 	}
 }
 

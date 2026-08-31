@@ -14,7 +14,7 @@ var schemaCmd = &cobra.Command{
 			"tools": []map[string]any{
 				{
 					"name":        "sansai_search",
-					"description": "キーワードで複数マーケットを横断検索する",
+					"description": "キーワードで複数マーケットを横断検索する。返却 Item の is_active は検索時点の推定値（get で確定）",
 					"parameters": map[string]any{
 						"type": "object",
 						"properties": map[string]any{

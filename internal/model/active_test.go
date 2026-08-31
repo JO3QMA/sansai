@@ -14,6 +14,7 @@ func TestIsActive(t *testing.T) {
 	}{
 		// mercari
 		{name: "mercari on_sale", market: MarketMercari, status: "on_sale", want: true},
+		{name: "mercari ITEM_STATUS_ON_SALE", market: MarketMercari, status: "ITEM_STATUS_ON_SALE", want: true},
 		{name: "mercari auction ongoing", market: MarketMercari, status: "on_sale", auctionState: "STATE_ONGOING", want: true},
 		{name: "mercari auction no bid", market: MarketMercari, status: "on_sale", auctionState: "STATE_NO_BID", want: true},
 		{name: "mercari sold_out", market: MarketMercari, status: "sold_out", want: false},
@@ -23,6 +24,8 @@ func TestIsActive(t *testing.T) {
 
 		// yahoo auction
 		{name: "yahoo auction open", market: MarketYahooAuction, status: "open", want: true},
+		{name: "yahoo auction empty status future end", market: MarketYahooAuction, auctionState: "2099-01-01T00:00:00+09:00", want: true},
+		{name: "yahoo auction empty status past end", market: MarketYahooAuction, auctionState: "2000-01-01T00:00:00+09:00", want: false},
 		{name: "yahoo auction closed", market: MarketYahooAuction, status: "closed", want: false},
 		{name: "yahoo auction sold", market: MarketYahooAuction, status: "sold", want: false},
 		{name: "yahoo auction cancel", market: MarketYahooAuction, status: "cancel", want: false},
