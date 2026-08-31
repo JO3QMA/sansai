@@ -70,6 +70,17 @@ sansai schema   # Function Calling 用 JSON
 | `--min-price` | | `0` | 最低価格（円） |
 | `--max-price` | | `0` | 最高価格（円） |
 
+### 横断検索の部分失敗
+
+- 市場ごとに独立実行。1市場失敗でも他市場の結果は返る（全市場失敗時のみ exit 1）
+- `results[].error` に市場ローカルな失敗理由。404 等の 0件は空 `items`（`error` なし）
+- ヤフオク `-n` は内部で 20/50/100 にクランプ
+
+### メルカリ Shops
+
+- 個人出品: ID が `m` + 数字（例: `m29820723477`）→ `get` 可能
+- Shops 出品: `extra.shops: true` → **`get` 不可**。検索結果の title/price/url を使う
+
 ## 出力 JSON 型
 
 ```json
@@ -96,7 +107,8 @@ sansai schema   # Function Calling 用 JSON
         }
       ],
       "total": 100,
-      "page": 1
+      "page": 1,
+      "error": ""
     }
   ]
 }
@@ -136,7 +148,7 @@ sansai schema   # Function Calling 用 JSON
 }
 ```
 
-検索 → 候補提示 → `get` で詳細取得、の流れが自然。
+検索 → 候補提示 → `get` で詳細取得、の流れが自然。ただしメルカリ Shops（`extra.shops: true`）は `get` しないこと。
 
 ## 制約・注意
 
@@ -144,3 +156,4 @@ sansai schema   # Function Calling 用 JSON
 - サイト側の HTML/API 変更で壊れる可能性がある。
 - メルカリは DPoP 署名付き API（`goForMercari` 由来）。
 - 過度なリクエストは避ける。Agent 利用時も件数・頻度に注意。
+- Yahoo!フリマの短い英数字クエリ（`6028U` 等）は 0件になりうる（サイト側挙動）。

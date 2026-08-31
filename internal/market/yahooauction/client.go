@@ -3,6 +3,7 @@ package yahooauction
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -14,10 +15,9 @@ import (
 	"github.com/jo3qma/sansai/internal/nextdata"
 )
 
-const (
-	searchBase = "https://auctions.yahoo.co.jp/search/search"
-	itemBase   = "https://auctions.yahoo.co.jp/jp/auction/"
-)
+var searchBase = "https://auctions.yahoo.co.jp/search/search"
+
+const itemBase = "https://auctions.yahoo.co.jp/jp/auction/"
 
 var productBlockRe = regexp.MustCompile(`(?s)<li class="Product">.*?</li>`)
 
@@ -31,24 +31,35 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 		opts.Page = 1
 	}
 
-	offset := (opts.Page-1)*opts.Limit + 1
 	pageSize := yahooAuctionPageSize(opts.Limit)
-	params := url.Values{
-		"p":  {query},
-		"va": {query},
-		"b":  {strconv.Itoa(offset)},
-		"n":  {strconv.Itoa(pageSize)},
-	}
-	if opts.MinPrice > 0 {
-		params.Set("min", strconv.Itoa(opts.MinPrice))
-	}
-	if opts.MaxPrice > 0 {
-		params.Set("max", strconv.Itoa(opts.MaxPrice))
-	}
+	offset := (opts.Page-1)*pageSize + 1
 
-	body, err := httpclient.Get(searchBase + "?" + params.Encode())
+	body, status, err := fetchSearch(query, opts, offset, pageSize, searchParamFull)
 	if err != nil {
 		return nil, err
+	}
+	if status == http.StatusNotFound {
+		body, status, err = fetchSearch(query, opts, offset, pageSize, searchParamNoVA)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if status == http.StatusNotFound {
+		body, status, err = fetchSearch(query, opts, offset, pageSize, searchParamNoPrice)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if status == http.StatusNotFound {
+		return &model.SearchResult{
+			Market: model.MarketYahooAuction,
+			Query:  query,
+			Items:  []model.Item{},
+			Page:   opts.Page,
+		}, nil
+	}
+	if status < 200 || status >= 300 {
+		return nil, fmt.Errorf("HTTP %d from %s", status, searchBase)
 	}
 
 	items := parseSearchHTML(string(body), opts.MinPrice, opts.MaxPrice)
@@ -62,6 +73,47 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 		Items:  items,
 		Page:   opts.Page,
 	}, nil
+}
+
+type searchParamMode int
+
+const (
+	searchParamFull searchParamMode = iota
+	searchParamNoVA
+	searchParamNoPrice
+)
+
+func fetchSearch(query string, opts model.SearchOptions, offset, pageSize int, mode searchParamMode) ([]byte, int, error) {
+	params := buildSearchParams(query, opts, offset, pageSize, mode)
+	return httpclient.GetStatus(searchBase + "?" + params.Encode())
+}
+
+func buildSearchParams(query string, opts model.SearchOptions, offset, pageSize int, mode searchParamMode) url.Values {
+	params := url.Values{
+		"p": {query},
+		"b": {strconv.Itoa(offset)},
+		"n": {strconv.Itoa(pageSize)},
+	}
+	switch mode {
+	case searchParamFull:
+		params.Set("va", query)
+		if opts.MinPrice > 0 {
+			params.Set("min", strconv.Itoa(opts.MinPrice))
+		}
+		if opts.MaxPrice > 0 {
+			params.Set("max", strconv.Itoa(opts.MaxPrice))
+		}
+	case searchParamNoVA:
+		if opts.MinPrice > 0 {
+			params.Set("min", strconv.Itoa(opts.MinPrice))
+		}
+		if opts.MaxPrice > 0 {
+			params.Set("max", strconv.Itoa(opts.MaxPrice))
+		}
+	case searchParamNoPrice:
+		// p only — Yahoo may 404 on keyword+price combos with no matches
+	}
+	return params
 }
 
 func (c *Client) Get(_ context.Context, id string) (*model.Item, error) {

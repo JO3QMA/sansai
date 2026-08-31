@@ -1,9 +1,13 @@
 package yahooauction
 
 import (
+	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -72,6 +76,79 @@ func TestYahooAuctionPageSize(t *testing.T) {
 		if got := yahooAuctionPageSize(tt.limit); got != tt.want {
 			t.Fatalf("yahooAuctionPageSize(%d) = %d, want %d", tt.limit, got, tt.want)
 		}
+	}
+}
+
+func TestSearchOffsetUsesPageSize(t *testing.T) {
+	t.Parallel()
+	pageSize := yahooAuctionPageSize(8)
+	offset := (2-1)*pageSize + 1
+	if offset != 21 {
+		t.Fatalf("page 2 with limit 8: offset = %d, want 21 (pageSize=%d)", offset, pageSize)
+	}
+}
+
+func TestBuildSearchParams(t *testing.T) {
+	t.Parallel()
+	opts := model.SearchOptions{MinPrice: 10000, MaxPrice: 80000}
+	full := buildSearchParams("test query", opts, 21, 20, searchParamFull)
+	if full.Get("va") != "test query" || full.Get("min") != "10000" {
+		t.Fatalf("full: %#v", full)
+	}
+	noVA := buildSearchParams("test query", opts, 21, 20, searchParamNoVA)
+	if noVA.Get("va") != "" || noVA.Get("min") != "10000" {
+		t.Fatalf("noVA: %#v", noVA)
+	}
+	noPrice := buildSearchParams("test query", opts, 21, 20, searchParamNoPrice)
+	if noPrice.Get("min") != "" || noPrice.Get("max") != "" || noPrice.Get("p") != "test query" {
+		t.Fatalf("noPrice: %#v", noPrice)
+	}
+}
+
+func TestSearchNotFoundReturnsEmpty(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.NotFound(w, r)
+	}))
+	t.Cleanup(server.Close)
+
+	oldBase := searchBase
+	searchBase = server.URL
+	t.Cleanup(func() { searchBase = oldBase })
+
+	c := &Client{}
+	res, err := c.Search(context.Background(), "ストレージサーバー 8ベイ", model.SearchOptions{
+		Limit:    8,
+		MinPrice: 10000,
+		MaxPrice: 80000,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Items) != 0 {
+		t.Fatalf("items: %#v", res.Items)
+	}
+	if res.Market != model.MarketYahooAuction {
+		t.Fatalf("market: %q", res.Market)
+	}
+}
+
+func TestAuctionDescriptionPreservesFullHTMLText(t *testing.T) {
+	raw := auctionItemDetail{
+		Description:     []string{"短い要約"},
+		DescriptionHTML:   "型番: PowerEdge R740<BR>詳細な説明文",
+		DescriptionUlt: &struct {
+			RawDescriptionLength int `json:"rawDescriptionLength"`
+		}{RawDescriptionLength: 500},
+	}
+	got := auctionDescription(raw)
+	if !strings.Contains(got, "PowerEdge R740") || !strings.Contains(got, "詳細な説明文") {
+		t.Fatalf("got %q", got)
+	}
+	extra := auctionExtra(raw)
+	if _, ok := extra["description_truncated"]; ok {
+		t.Fatalf("description_truncated should not be set when HTML is present: %#v", extra)
 	}
 }
 
