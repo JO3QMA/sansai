@@ -3,6 +3,7 @@ package yahooflea
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"net/url"
 	"strings"
 
@@ -11,10 +12,9 @@ import (
 	"github.com/jo3qma/sansai/internal/nextdata"
 )
 
-const (
-	searchBase = "https://paypayfleamarket.yahoo.co.jp/search/"
-	itemBase   = "https://paypayfleamarket.yahoo.co.jp/item/"
-)
+var searchBase = "https://paypayfleamarket.yahoo.co.jp/search/"
+
+const itemBase = "https://paypayfleamarket.yahoo.co.jp/item/"
 
 type Client struct{}
 
@@ -31,9 +31,20 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 		searchURL += fmt.Sprintf("?page=%d", opts.Page)
 	}
 
-	body, err := httpclient.Get(searchURL)
+	body, status, err := httpclient.GetStatus(searchURL)
 	if err != nil {
 		return nil, err
+	}
+	if status == http.StatusNotFound {
+		return &model.SearchResult{
+			Market: model.MarketYahooFlea,
+			Query:  query,
+			Items:  []model.Item{},
+			Page:   opts.Page,
+		}, nil
+	}
+	if status < 200 || status >= 300 {
+		return nil, fmt.Errorf("HTTP %d from %s", status, searchURL)
 	}
 
 	var data struct {

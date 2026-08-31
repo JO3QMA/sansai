@@ -1,12 +1,40 @@
 package yahooflea
 
 import (
+	"context"
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
 	"github.com/jo3qma/sansai/internal/model"
 )
+
+func TestSearchNotFoundReturnsEmpty(t *testing.T) {
+	t.Parallel()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.NotFound(w, r)
+	}))
+	t.Cleanup(server.Close)
+
+	oldBase := searchBase
+	searchBase = server.URL + "/"
+	t.Cleanup(func() { searchBase = oldBase })
+
+	c := &Client{}
+	res, err := c.Search(context.Background(), "6028U", model.SearchOptions{Limit: 5})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res.Items) != 0 {
+		t.Fatalf("items: %#v", res.Items)
+	}
+	if res.Market != model.MarketYahooFlea || res.Query != "6028U" {
+		t.Fatalf("result: %#v", res)
+	}
+}
 
 func TestItemFromDetailFixture(t *testing.T) {
 	raw, err := os.ReadFile("testdata/item_detail.json")
