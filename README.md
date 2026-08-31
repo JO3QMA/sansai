@@ -46,6 +46,18 @@ sansai search "nintendo switch" -m yahoo_auction,yahoo_flea -n 5
 sansai search "カメラ" --min-price 10000 --max-price 50000
 ```
 
+### 横断検索の部分失敗
+
+`search` は市場ごとに独立して実行されます。1市場が失敗（または0件）しても他市場の結果は返り、**全市場が失敗したときだけ** exit 1 です。
+
+- `results[].error` — 市場ローカルな失敗理由（HTTP エラー等）。空なら成功または0件
+- ヤフオク・フリマの検索 404 は 0件として空 `items` を返します（`error` なし）
+- ヤフオクの `-n` は内部で 20 / 50 / 100 のページサイズに丸められます
+
+### メルカリ Shops
+
+メルカリ検索結果のうち `extra.shops: true` の出品は **Shops（公式ストア）** です。`get` は未対応（`unsupported id: mercari shops listing`）なので、検索結果の `title` / `price` / `url` を使ってください。個人出品（`m` + 数字の ID、例: `m29820723477`）は `get` 可能です。
+
 ### 商品詳細
 
 ```bash
@@ -134,6 +146,7 @@ Cursor / Claude などの Agent に次のように登録します:
 - サイト側の HTML / API 変更で動かなくなる可能性があります。
 - メルカリは DPoP 署名付き API を使用しています（`goForMercari` 由来の実装）。
 - 過度なリクエストは避けてください。
+- Yahoo!フリマは短い英数字クエリ（例: `6028U`）で 0件になることがあります（サイト側の挙動）。本物の 0件と区別できません。
 
 ## 開発
 
