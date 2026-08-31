@@ -64,6 +64,7 @@ type SearchResult struct {
 	Items  []Item `json:"items"`
 	Total  int    `json:"total,omitempty"`
 	Page   int    `json:"page,omitempty"`
+	Error  string `json:"error,omitempty"`
 }
 
 type SearchResponse struct {
