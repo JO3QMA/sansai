@@ -32,11 +32,12 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 	}
 
 	offset := (opts.Page-1)*opts.Limit + 1
+	pageSize := yahooAuctionPageSize(opts.Limit)
 	params := url.Values{
 		"p":  {query},
 		"va": {query},
 		"b":  {strconv.Itoa(offset)},
-		"n":  {strconv.Itoa(opts.Limit)},
+		"n":  {strconv.Itoa(pageSize)},
 	}
 	if opts.MinPrice > 0 {
 		params.Set("min", strconv.Itoa(opts.MinPrice))
@@ -234,4 +235,16 @@ func unixToRFC3339(unix string) string {
 		return ""
 	}
 	return time.Unix(sec, 0).Format(time.RFC3339)
+}
+
+// yahooAuctionPageSize maps requested limits to Yahoo's supported page sizes (20/50/100).
+func yahooAuctionPageSize(limit int) int {
+	switch {
+	case limit <= 20:
+		return 20
+	case limit <= 50:
+		return 50
+	default:
+		return 100
+	}
 }

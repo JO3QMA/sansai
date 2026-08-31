@@ -23,6 +23,27 @@ func TestYahooSearchStatus(t *testing.T) {
 	}
 }
 
+func TestYahooAuctionPageSize(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		limit int
+		want  int
+	}{
+		{limit: 1, want: 20},
+		{limit: 8, want: 20},
+		{limit: 20, want: 20},
+		{limit: 21, want: 50},
+		{limit: 50, want: 50},
+		{limit: 51, want: 100},
+		{limit: 100, want: 100},
+	}
+	for _, tt := range tests {
+		if got := yahooAuctionPageSize(tt.limit); got != tt.want {
+			t.Fatalf("yahooAuctionPageSize(%d) = %d, want %d", tt.limit, got, tt.want)
+		}
+	}
+}
+
 func TestJoinDescription(t *testing.T) {
 	got := joinDescription([]string{"", "説明1", "", "説明2"})
 	if got != "説明1\n説明2" {
