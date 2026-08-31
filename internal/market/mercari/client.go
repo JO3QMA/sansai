@@ -133,6 +133,9 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 				item.EndTime = it.Auction.BidDeadline
 			}
 		}
+		if !isMercariPersonalID(it.ID) {
+			item.Extra = map[string]any{"shops": true}
+		}
 		items = append(items, item)
 	}
 
@@ -146,6 +149,9 @@ func (c *Client) Search(_ context.Context, query string, opts model.SearchOption
 }
 
 func (c *Client) Get(_ context.Context, id string) (*model.Item, error) {
+	if !isMercariPersonalID(id) {
+		return nil, fmt.Errorf("unsupported id: mercari shops listing (%s)", id)
+	}
 	target := itemURL + "?id=" + id + "&include_auction=true"
 	req, err := http.NewRequest(http.MethodGet, target, nil)
 	if err != nil {
@@ -322,6 +328,18 @@ func generateDPoP(method, url string) string {
 
 func byteToBase64URL(data []byte) string {
 	return base64.RawURLEncoding.EncodeToString(data)
+}
+
+func isMercariPersonalID(id string) bool {
+	if len(id) < 2 || id[0] != 'm' {
+		return false
+	}
+	for _, c := range id[1:] {
+		if c < '0' || c > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 func conditionLabel(id string) string {
