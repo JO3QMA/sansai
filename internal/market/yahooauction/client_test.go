@@ -10,6 +10,37 @@ import (
 	"github.com/jo3qma/sansai/internal/model"
 )
 
+func TestHtmlToText(t *testing.T) {
+	got := htmlToText("line1<BR><br/>line2<b>bold</b>")
+	want := "line1\n\nline2bold"
+	if got != want {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestAuctionDescriptionPrefersHTML(t *testing.T) {
+	raw := auctionItemDetail{
+		Description:     []string{"短い要約"},
+		DescriptionHTML: "全文<BR>続き",
+	}
+	if got := auctionDescription(raw); got != "全文\n続き" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestDescriptionTruncatedFlag(t *testing.T) {
+	raw := auctionItemDetail{
+		Description: []string{"短い"},
+		DescriptionUlt: &struct {
+			RawDescriptionLength int `json:"rawDescriptionLength"`
+		}{RawDescriptionLength: 500},
+	}
+	extra := auctionExtra(raw)
+	if extra["description_truncated"] != true {
+		t.Fatalf("extra: %#v", extra)
+	}
+}
+
 func TestYahooSearchStatus(t *testing.T) {
 	t.Parallel()
 	future := strconv.FormatInt(time.Now().Add(24*time.Hour).Unix(), 10)

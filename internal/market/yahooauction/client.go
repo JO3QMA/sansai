@@ -96,14 +96,18 @@ func (c *Client) Get(_ context.Context, id string) (*model.Item, error) {
 }
 
 type auctionItemDetail struct {
-	AuctionID     string   `json:"auctionId"`
-	Title         string   `json:"title"`
-	Price         int      `json:"price"`
-	BuyNowPrice   int      `json:"buyNowPrice"`
-	EndTime       string   `json:"endTime"`
-	ItemStatus    string   `json:"itemStatus"`
-	ConditionName string   `json:"conditionName"`
-	Description   []string `json:"description"`
+	AuctionID       string   `json:"auctionId"`
+	Title           string   `json:"title"`
+	Price           int      `json:"price"`
+	BuyNowPrice     int      `json:"buyNowPrice"`
+	EndTime         string   `json:"endTime"`
+	ItemStatus      string   `json:"itemStatus"`
+	ConditionName   string   `json:"conditionName"`
+	Description     []string `json:"description"`
+	DescriptionHTML string   `json:"descriptionHtml"`
+	DescriptionUlt  *struct {
+		RawDescriptionLength int `json:"rawDescriptionLength"`
+	} `json:"descriptionUlt"`
 	Img           []struct {
 		Image string `json:"image"`
 	} `json:"img"`
@@ -131,14 +135,12 @@ func itemFromDetail(raw auctionItemDetail) *model.Item {
 		URL:         itemBase + raw.AuctionID,
 		ImageURL:    imageURL,
 		ImageURLs:   imageURLs,
-		Description: joinDescription(raw.Description),
+		Description: auctionDescription(raw),
 		SaleType:    model.SaleTypeAuction,
 		Status:      raw.ItemStatus,
 		Condition:   raw.ConditionName,
 		Seller:      raw.Seller.AucUserID,
-		Extra: map[string]any{
-			"buy_now_price": raw.BuyNowPrice,
-		},
+		Extra:       auctionExtra(raw),
 	}
 	if raw.EndTime != "" {
 		item.EndTime = raw.EndTime
@@ -172,6 +174,41 @@ func joinDescription(parts []string) string {
 		}
 	}
 	return strings.Join(nonEmpty, "\n")
+}
+
+func auctionDescription(raw auctionItemDetail) string {
+	if html := strings.TrimSpace(raw.DescriptionHTML); html != "" {
+		return htmlToText(html)
+	}
+	return joinDescription(raw.Description)
+}
+
+func auctionExtra(raw auctionItemDetail) map[string]any {
+	extra := map[string]any{
+		"buy_now_price": raw.BuyNowPrice,
+	}
+	if strings.TrimSpace(raw.DescriptionHTML) == "" && descriptionTruncated(raw) {
+		extra["description_truncated"] = true
+	}
+	return extra
+}
+
+func descriptionTruncated(raw auctionItemDetail) bool {
+	if raw.DescriptionUlt == nil {
+		return false
+	}
+	return raw.DescriptionUlt.RawDescriptionLength > len(joinDescription(raw.Description))
+}
+
+var htmlTagRe = regexp.MustCompile(`<[^>]*>`)
+
+func htmlToText(html string) string {
+	text := strings.ReplaceAll(html, "<BR>", "\n")
+	text = strings.ReplaceAll(text, "<br>", "\n")
+	text = strings.ReplaceAll(text, "<br/>", "\n")
+	text = htmlTagRe.ReplaceAllString(text, "")
+	text = strings.ReplaceAll(text, "&nbsp;", " ")
+	return strings.TrimSpace(text)
 }
 
 func parseSearchHTML(html string, minPrice, maxPrice int) []model.Item {
