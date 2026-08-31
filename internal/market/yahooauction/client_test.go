@@ -8,6 +8,37 @@ import (
 	"github.com/jo3qma/sansai/internal/model"
 )
 
+func TestHtmlToText(t *testing.T) {
+	got := htmlToText("line1<BR><br/>line2<b>bold</b>")
+	want := "line1\n\nline2bold"
+	if got != want {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestAuctionDescriptionPrefersHTML(t *testing.T) {
+	raw := auctionItemDetail{
+		Description:     []string{"短い要約"},
+		DescriptionHTML: "全文<BR>続き",
+	}
+	if got := auctionDescription(raw); got != "全文\n続き" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestDescriptionTruncatedFlag(t *testing.T) {
+	raw := auctionItemDetail{
+		Description: []string{"短い"},
+		DescriptionUlt: &struct {
+			RawDescriptionLength int `json:"rawDescriptionLength"`
+		}{RawDescriptionLength: 500},
+	}
+	extra := auctionExtra(raw)
+	if extra["description_truncated"] != true {
+		t.Fatalf("extra: %#v", extra)
+	}
+}
+
 func TestJoinDescription(t *testing.T) {
 	got := joinDescription([]string{"", "説明1", "", "説明2"})
 	if got != "説明1\n説明2" {
