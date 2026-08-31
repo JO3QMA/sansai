@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/jo3qma/sansai/internal/httpclient"
 	"github.com/jo3qma/sansai/internal/model"
@@ -142,7 +143,7 @@ func itemFromDetail(raw auctionItemDetail) *model.Item {
 	if raw.EndTime != "" {
 		item.EndTime = raw.EndTime
 	}
-	item.IsActive = model.IsActive(model.MarketYahooAuction, raw.ItemStatus, "")
+	item.IsActive = model.IsActive(model.MarketYahooAuction, raw.ItemStatus, raw.EndTime)
 	return item
 }
 
@@ -198,6 +199,9 @@ func parseSearchHTML(html string, minPrice, maxPrice int) []model.Item {
 		if maxPrice > 0 && price > maxPrice {
 			continue
 		}
+		endUnix := attr(block, `data-auction-endtime`)
+		endTime := unixToRFC3339(endUnix)
+		status := yahooSearchStatus(endUnix)
 		items = append(items, model.Item{
 			Market:   model.MarketYahooAuction,
 			ID:       id,
@@ -207,10 +211,30 @@ func parseSearchHTML(html string, minPrice, maxPrice int) []model.Item {
 			URL:      itemBase + id,
 			ImageURL: attr(block, `data-auction-img`),
 			SaleType: model.SaleTypeAuction,
-			IsActive: model.IsActive(model.MarketYahooAuction, "open", ""),
+			EndTime:  endTime,
+			Status:   status,
+			IsActive: model.IsActive(model.MarketYahooAuction, status, endUnix),
 		})
 	}
 	return items
+}
+
+func yahooSearchStatus(endUnix string) string {
+	if endUnix == "" {
+		return ""
+	}
+	if model.IsActive(model.MarketYahooAuction, "", endUnix) {
+		return "open"
+	}
+	return "closed"
+}
+
+func unixToRFC3339(unix string) string {
+	sec, err := strconv.ParseInt(unix, 10, 64)
+	if err != nil || sec <= 0 {
+		return ""
+	}
+	return time.Unix(sec, 0).Format(time.RFC3339)
 }
 
 // yahooAuctionPageSize maps requested limits to Yahoo's supported page sizes (20/50/100).
