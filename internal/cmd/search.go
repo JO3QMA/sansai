@@ -27,10 +27,12 @@ var searchCmd = &cobra.Command{
 			MinPrice: searchMin,
 			MaxPrice: searchMax,
 		})
-		if err != nil {
-			return err
+		if resp != nil {
+			if encErr := printJSON(resp); encErr != nil {
+				return encErr
+			}
 		}
-		return printJSON(resp)
+		return err
 	},
 }
 

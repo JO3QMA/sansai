@@ -9,6 +9,38 @@ import (
 	"github.com/jo3qma/sansai/internal/model"
 )
 
+func TestIsMercariPersonalID(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		id   string
+		want bool
+	}{
+		{id: "m29820723477", want: true},
+		{id: "m1", want: true},
+		{id: "2JV9ANthhYNHiJGoq39omJ", want: false},
+		{id: "uC2mpJ9BJhcPaSNxqEW3wN", want: false},
+		{id: "mabc", want: false},
+		{id: "", want: false},
+	}
+	for _, tt := range tests {
+		if got := isMercariPersonalID(tt.id); got != tt.want {
+			t.Fatalf("isMercariPersonalID(%q) = %v, want %v", tt.id, got, tt.want)
+		}
+	}
+}
+
+func TestGetUnsupportedShopsID(t *testing.T) {
+	t.Parallel()
+	c := &Client{}
+	_, err := c.Get(context.Background(), "2JV9ANthhYNHiJGoq39omJ")
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if got := err.Error(); got != "unsupported id: mercari shops listing (2JV9ANthhYNHiJGoq39omJ)" {
+		t.Fatalf("got %q", got)
+	}
+}
+
 func TestItemFromDetailFixture(t *testing.T) {
 	t.Run("fixed_price", func(t *testing.T) {
 		raw := readFixture(t, "testdata/item_fixed_price.json")
