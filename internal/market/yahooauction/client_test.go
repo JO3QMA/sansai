@@ -3,10 +3,25 @@ package yahooauction
 import (
 	"encoding/json"
 	"os"
+	"strconv"
 	"testing"
+	"time"
 
 	"github.com/jo3qma/sansai/internal/model"
 )
+
+func TestYahooSearchStatus(t *testing.T) {
+	t.Parallel()
+	future := strconv.FormatInt(time.Now().Add(24*time.Hour).Unix(), 10)
+	past := strconv.FormatInt(time.Now().Add(-24*time.Hour).Unix(), 10)
+
+	if got := yahooSearchStatus(future); got != "open" {
+		t.Fatalf("future: got %q", got)
+	}
+	if got := yahooSearchStatus(past); got != "closed" {
+		t.Fatalf("past: got %q", got)
+	}
+}
 
 func TestJoinDescription(t *testing.T) {
 	got := joinDescription([]string{"", "説明1", "", "説明2"})
